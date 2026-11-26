@@ -1,0 +1,41 @@
+name: CI - Build e Testes
+
+# Executa automaticamente a cada push e pull request
+on:
+  push:
+    branches: [ "main", "develop", "feature/**" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-e-testes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar o código-fonte do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar o ambiente Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: 3. Instalar dependências (Maven)
+        run: mvn -B dependency:resolve
+
+      - name: 4. Compilar a aplicação Spring Boot
+        run: mvn -B compile
+
+      - name: 5. Executar testes automatizados (JUnit 5 + MockMvc)
+        run: mvn -B test
+
+      - name: 6. Gerar o arquivo JAR
+        run: mvn -B package -DskipTests
+
+      - name: 7. Disponibilizar o JAR gerado
+        uses: actions/upload-artifact@v4
+        with:
+          name: biblioteca-api-jar
+          path: target/*.jar
